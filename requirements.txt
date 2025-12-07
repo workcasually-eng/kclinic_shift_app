@@ -1,0 +1,7 @@
+streamlit
+pandas
+google-auth
+gspread
+oauth2client
+python-dateutil
+ortools
