@@ -366,6 +366,7 @@ def login_screen():
             except Exception as e:
                 st.error(f"ログインエラー: {e}")
 
+
 # =========================================================
 # 👤 スタッフ画面
 # =========================================================
@@ -614,12 +615,52 @@ def staff_screen():
     # ----------------------------------------------------------------
     elif selected_tab == "📜 確定シフト履歴":
         st.subheader("確定シフト履歴")
+        
+        # --- 追加: 休日消化状況の計算と表示 ---
+        # 1. 本人の休日付与数を取得
+        staff_master = st.session_state.master_staff
+        target_holidays = 0
+        if staff_master is not None and not staff_master.empty:
+            my_info = staff_master[staff_master['name'] == user_name]
+            if not my_info.empty:
+                try: target_holidays = int(my_info.iloc[0]['holiday_target'])
+                except: target_holidays = 0
+        
+        # 2. ログから今年度の消化休日数を計算
+        taken_holidays = 0
         df_log = load_data("ログ", ['日付', '曜日'])
+        
+        if not df_log.empty and user_name in df_log.columns:
+            # 日付型に変換
+            df_log['dt_obj'] = pd.to_datetime(df_log['日付'], errors='coerce')
+            # 今年のデータのみ抽出
+            current_year_logs = df_log[df_log['dt_obj'].dt.year == target_y]
+            
+            # '0' が休日なのでカウントする
+            taken_holidays = current_year_logs[user_name].apply(lambda x: 1 if str(x)=='0' else 0).sum()
+        
+        remaining_holidays = target_holidays - taken_holidays
+        
+        # 3. メトリクス表示
+        st.markdown(f"**📊 {target_y}年度 休日状況**")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("付与休日", f"{target_holidays}日")
+        m2.metric("確定済み休日", f"{taken_holidays}日")
+        m3.metric("残休日", f"{remaining_holidays}日", delta_color="normal")
+        
+        st.divider()
+        # ---------------------------------------
+
         if not df_log.empty and user_name in df_log.columns:
             my_log = df_log[['日付', '曜日', user_name]].copy()
             my_log.columns = ['日付', '曜日', '勤務']
             my_log['勤務'] = my_log['勤務'].apply(lambda x: "✅ 出勤" if str(x)=='1' else "🛌 休み")
-            st.dataframe(my_log.sort_values('日付', ascending=False), use_container_width=True)
+            
+            # 最新の日付が上に来るようにソート
+            my_log['dt_sort'] = pd.to_datetime(my_log['日付'], errors='coerce')
+            my_log = my_log.sort_values('dt_sort', ascending=False).drop(columns=['dt_sort'])
+            
+            st.dataframe(my_log, use_container_width=True)
         else: st.info("履歴はありません")
 
 # =========================================================
