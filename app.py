@@ -1,3 +1,5 @@
+#インプット
+
 import streamlit as st
 import pandas as pd
 from ortools.sat.python import cp_model
@@ -437,7 +439,7 @@ def staff_screen():
         if "0_通常" not in phase:
             st.warning("⚠️ 現在は通常の希望休申請フェーズではありません。")
         else:
-            st.info("希望休申請です。2か月前10日までに申請してください。それ以降に申請されたものはは反映されません。")
+            st.info("希望休申請です。2か月前10日までに申請してください。それ以降に申請されたものはは反映されません。2ヶ月後以降先の予定も申請可能です。")
         
         with st.form("req_form"):
             d = st.date_input("日付", value=default_date)
@@ -706,7 +708,7 @@ def admin_screen():
         if df_log is None or df_log.empty:
             for s in staffs_list:
                 tgt = int(s.get('holiday_target', 0))
-                summary.append({"名前": s['name'], "付与公休": tgt, "消化公休": 0, "残公休": tgt})
+                summary.append({"名前": s['name'], "付与休日": tgt, "消化休日": 0, "残休日": tgt})
             return pd.DataFrame(summary).set_index("名前")
         try:
             df_log['日付'] = pd.to_datetime(df_log['日付']).dt.date
@@ -717,7 +719,7 @@ def admin_screen():
                 used = 0
                 if nm in current_year_logs.columns:
                     used = current_year_logs[nm].apply(lambda x: 1 if str(x)=='0' else 0).sum()
-                summary.append({"名前": nm, "付与公休": tgt, "消化公休": used, "残公休": tgt - used})
+                summary.append({"名前": nm, "付与休日": tgt, "消化休日": used, "残休日": tgt - used})
         except: pass
         return pd.DataFrame(summary).set_index("名前")
 
@@ -744,7 +746,7 @@ def admin_screen():
             p_off = past_holidays.get(nm, 0)
             total_off = p_off + month_off
             remaining = target - total_off
-            stats_data.append({"名前": nm, "付与公休": target, "消化公休": total_off, "残公休": remaining})
+            stats_data.append({"名前": nm, "付与休日": target, "消化休日": total_off, "残休日": remaining})
         return pd.DataFrame(stats_data).set_index("名前")
 
     def calculate_daily_stats(schedule_df, staff_list, year, month, required_map=None):
