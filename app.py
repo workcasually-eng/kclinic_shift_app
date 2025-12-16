@@ -14,10 +14,18 @@ import random
 # =========================================================
 # ⚙️ 設定エリア
 # =========================================================
-DEFAULT_ADMIN_PASSWORD = "tB6$gsIGdjWt"
-# スーパー管理者（緊急用）
-DEFAULT_SUPER_ADMIN_ID = "sokawa"
-DEFAULT_SUPER_ADMIN_PASS = "tB6$gsIGdjWt"
+# パスワードやURLはコードに書かず、StreamlitのSecrets機能から読み込みます
+try:
+    DEFAULT_ADMIN_PASSWORD = st.secrets["admin_password"]
+    DEFAULT_SUPER_ADMIN_ID = "root"
+    DEFAULT_SUPER_ADMIN_PASS = st.secrets["super_admin_pass"]
+    URL_REQUEST_DB = st.secrets["sheet_url"]
+except FileNotFoundError:
+    st.error("⚠️ Secrets情報が見つかりません。Streamlit CloudのSettingsで設定してください。")
+    st.stop()
+except KeyError as e:
+    st.error(f"⚠️ 設定が不足しています: {e}")
+    st.stop()
 
 # 全てのデータ（マスタ、申請、ログ、仮シフト、完成シフト）をこのシートで管理します
 # ※ご自身のスプレッドシートURLを設定してください
