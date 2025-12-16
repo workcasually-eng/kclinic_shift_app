@@ -14,10 +14,10 @@ import random
 # =========================================================
 # ⚙️ 設定エリア
 # =========================================================
-DEFAULT_ADMIN_PASSWORD = "1234"
+DEFAULT_ADMIN_PASSWORD = "tB6$gsIGdjWt"
 # スーパー管理者（緊急用）
-DEFAULT_SUPER_ADMIN_ID = "root"
-DEFAULT_SUPER_ADMIN_PASS = "1234"
+DEFAULT_SUPER_ADMIN_ID = "sokawa"
+DEFAULT_SUPER_ADMIN_PASS = "tB6$gsIGdjWt"
 
 # 全てのデータ（マスタ、申請、ログ、仮シフト、完成シフト）をこのシートで管理します
 # ※ご自身のスプレッドシートURLを設定してください
@@ -27,6 +27,17 @@ URL_REQUEST_DB = "https://docs.google.com/spreadsheets/d/1y7H-9c2EJhpCKoXY6Va_RR
 # 🚀 アプリ初期設定 & セッション初期化
 # =========================================================
 st.set_page_config(page_title="病院シフト管理アプリ", layout="wide")
+
+# ▼▼▼ 追加コード：メニューとフッターを非表示にするCSS ▼▼▼
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+# ▲▲▲ 追加コード終了 ▲▲▲
 
 # セッション変数の枠作成
 if 'user_role' not in st.session_state: st.session_state.user_role = None
