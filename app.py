@@ -21,7 +21,7 @@ try:
     DEFAULT_SUPER_ADMIN_PASS = st.secrets["super_admin_pass"]
     URL_REQUEST_DB = st.secrets["sheet_url"]
 except FileNotFoundError:
-    st.error("⚠️ Secrets情報が見つかりません。Streamlit CloudのSettingsで設定してください。")
+    st.error("⚠️ Secrets情報が見つかりません。Streamlit Cloud of Settingsで設定してください。")
     st.stop()
 except KeyError as e:
     st.error(f"⚠️ 設定が不足しています: {e}")
@@ -642,8 +642,11 @@ def staff_screen():
         if staff_master is not None and not staff_master.empty:
             my_info = staff_master[staff_master['name'] == user_name]
             if not my_info.empty:
-                try: target_holidays = int(my_info.iloc[0]['holiday_target'])
-                except: target_holidays = 0
+                try: 
+                    val = my_info.iloc[0]['holiday_target']
+                    target_holidays = int(float(val)) if pd.notnull(val) and str(val).strip() != "" else 0
+                except: 
+                    target_holidays = 0
         
         # 2. ログから今年度の消化休日数を計算
         taken_holidays = 0
@@ -656,7 +659,20 @@ def staff_screen():
             current_year_logs = df_log[df_log['dt_obj'].dt.year == target_y]
             
             # '0' が休日なのでカウントする
-            taken_holidays = current_year_logs[user_name].apply(lambda x: 1 if str(x)=='0' else 0).sum()
+            try:
+                col_data = current_year_logs[user_name]
+                if isinstance(col_data, pd.DataFrame):
+                    # 重複する列名がある場合は最初の列を使用
+                    col_data = col_data.iloc[:, 0]
+                taken_holidays = int(col_data.apply(lambda x: 1 if str(x)=='0' else 0).sum())
+            except:
+                taken_holidays = 0
+        
+        # 安全のために再度キャスト
+        try: target_holidays = int(target_holidays)
+        except: target_holidays = 0
+        try: taken_holidays = int(taken_holidays)
+        except: taken_holidays = 0
         
         remaining_holidays = target_holidays - taken_holidays
         
